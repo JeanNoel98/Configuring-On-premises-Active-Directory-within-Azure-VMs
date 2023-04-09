@@ -6,6 +6,7 @@
 This tutorial outlines the implementation of on-premises Active Directory within Azure Virtual Machines.<br />
 
 
+
 <h2>Environments and Technologies Used</h2>
 
 - Microsoft Azure (Virtual Machines/Compute)
@@ -20,195 +21,75 @@ This tutorial outlines the implementation of on-premises Active Directory within
 
 
 <h2>Deployment and Configuration Steps</h2>
+
 <p>
-Create the Domain Controller VM (Windows Server 2022) named DC-1.
 </p>
 <p>
-<img src="https://i.imgur.com/ZcHOBbp.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
+In this lab we will create two VMs in the same VNET. One will be a Domain Controller, the other will be a Client machine. We will change the DC to a static IP because its offering Active Directory services to the client machine. Client machine will be joined to the domain. We will control the DNS settings on the client machine, the client machine will use the DC as its DNS server. 
 </p>
 <br />
 
 <p>
-Create the Client VM (Windows 10) named Client-1. Use the same Resource Group and Vnet that was created in the previous step. 
+<img src="https://i.imgur.com/d22FHIm.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
 </p>
 <p>
-<img src="https://i.imgur.com/Zxmqs5I.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
+DC-1 has to have a static Private IP Address. Client one will connect to DC-1 to ensure connectivity we will try to ping DC-1 from Client-1. At first the ping will not work correctly. We have to enable ICMPv4 on the firewall on DC-1. Now we can ping DC-1 successfully from Client-1
 </p>
 <br />
 
 <p>
-Set Domain Controller's NIC Private IP address to be static.
+<img src="https://i.imgur.com/HvZBWzc.png" height="60%" width="60%" alt="Disk Sanitization Steps"/>
+</p>
+<img src="https://i.imgur.com/1lrrGPw.png" height="60%" width="60%" alt="Disk Sanitization Steps"/>
+<p>
+Now we will log back into DC-1 to install AD Users & Computers. Promote the VM to DC, setup a new forest as "mydomain.com" afterwards restart then log back into DC-1 as user: "mydomain.com\labuser". If you performed the steps properly you should be able to run AD Users & Computers as shown below.
+</p>
+<img src="https://i.imgur.com/cGjvRke.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
+<br />
+</p>
+Excellent! We can start creating Organizational Units (OU). Let's first create an OU named _EMPLOYEES. Create another OU named _ADMINS. In order to do that right click on the domain area. Select new->Organizational Unit and fill out the field. Then click inside of your OU and right click, select new and select user and fill out the information for your new user. The user should be named Jane Doe, she is going to be an Admin so her username will be Jane_admin. Lastly add Jane to the domain admins security group. 
+</p>
+<img src="https://i.imgur.com/hL7g5Y5.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
+<br />
+</p>
+<img src="https://i.imgur.com/kcgvzdE.png" height="50%" width="50%" alt="Disk Sanitization Steps"/>
+From now on you can use Jane_admin as the administrator account. Now we will join Client-1 to the domain (mydomain.com) from the azure portal we will change client-1's DNS settings to the DC's Private IP address. After you do that restart Client-1 from within the Azure portal. Our picture below shows verification that client-1 is on the DC-1 DNS. 
+</p>
+<img src="https://i.imgur.com/jbrGTXW.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
+<br />
+</p>
+<img src="https://i.imgur.com/kvcm2cY.jpg" height="80%" width="80%" alt="Disk Sanitization Steps"/>
 </p>
 <p>
-<img src="https://i.imgur.com/50JHPVz.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
+</p>
+<p>
+We have to join Client-1 to the domain in order to do so navigate to your system settings and go to about. Off to the right select rename this pc (advanced). From there select to change the domain. Enter "mydomain.com" after that enter your credentials from mydomain.com\labuser. Your computer will restart and then client-1 will be a part of mydomain.com
+</p>
+<br />
+<p>
+  <p>
+<img src="https://i.imgur.com/Ze0Em5e.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
+</p>
+<p>
+Wonderufl Client-1 is now a part of the domain. Now we will set up remote desktop for non-administrative users on Client-1. We have to log into Client-1 as an admin and open system properties. Click on "Remote Desktop", allow "domain users" access to remote desktop. After completing those steps you should be able to log into Client-1 as a normal user.
 </p>
 <br />
 
 <p>
-Ensure that both VMs are in the same Vnet. You can check the topology with Network Watcher.
+  <p>
+<img src="https://i.imgur.com/SApOKiE.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
 </p>
 <p>
-<img src="https://i.imgur.com/qoa6Ogg.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
+Lastly to verify that noraml users can RDP into Client-1 we will use a script to generate thousands of users into the domain. We will input the script in powershell, after the users are created we will select one and RDP into Client-1.
 </p>
 <br />
-
+<img src="https://i.imgur.com/EzWG8ug.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
 <p>
-Login to Client-1 with Remote Desktop and ping DC-1's private IP address with ping -t which is a perpetual ping.
-</p>
 <p>
-<img src="https://i.imgur.com/7WiZnXa.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
+  <p>
+<img src="https://i.imgur.com/kyobAHe.png" height="60%" width="60%" alt="Disk Sanitization Steps"/>
 </p>
-<br />
-
+<img src="https://i.imgur.com/OJCraZp.png" height="60%" width="60%" alt="Disk Sanitization Steps"/>
 <p>
-Login to the Domain Controller and enable ICMPv4 in on the local windows firewall.  
+As you can see the Powershell script created a user with the username "baab.dubo" We were able to login to Client-1 with his credentials as a normal user. 
 </p>
-<p>
-<img src="https://i.imgur.com/5zjqHgk.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<p>
-<img src="https://i.imgur.com/sGYvdEB.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<br />
-
-<p>
-Check back at Client-1 to see if the ping succeeded.  
-</p>
-<p>
-<img src="https://i.imgur.com/aina7fg.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<br />
-
-<p>
-Login to DC-1 and install Active Directory Domain Services. 
-</p>
-<p>
-<img src="https://i.imgur.com/v96ghkg.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<br />
-
-<p>
-Promote as a Domain Controller. 
-</p>
-<p>
-<img src="https://i.imgur.com/sKzZmQi.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<br />
-
-<p>
-Setup a new forest as anything that you can remember. I did avyaktrout.com. 
-</p>
-<p>
-<img src="https://i.imgur.com/DDR3J40.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<br />
-
-<p>
-Restart and then log back into DC-1 as user.  
-</p>
-<p>
-<img src="https://i.imgur.com/T7E8uTc.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<br />
-
-<p>
-In Active Directory Users and Computers, create an Organizational Unit called _EMPLOYEES and another one called _ADMINS.  
-</p>
-<p>
-<img src="https://i.imgur.com/WCdOsvN.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<p>
-<img src="https://i.imgur.com/gQIWMqA.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<br />
-
-<p>
-Create a new employee named "Jane Doe" with the username of "jane_admin". 
-</p>
-<p>
-<img src="https://i.imgur.com/dXpSmHd.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<br />
-
-<p>
-Add jane_admin to the Domain Admins Security Group. 
-</p>
-<p>
-<img src="https://i.imgur.com/EBqKWdA.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<br />
-
-<p>
-Log out/close the Remote Desktop connection to DC-1 and log back in as “avyaktrout.com\jane_admin”. Use jane_admin as your admin account from now on. 
-</p>
-<p>
-<img src="https://i.imgur.com/phaYZHS.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<br />
-
-<p>
-From the Azure Portal, set Client-1's DNS settings to the DC's Private IP address.  
-</p>
-<p>
-<img src="https://i.imgur.com/FgY17Ww.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<br />
-
-<p>
-From the Azure Portal restart Client-1. Login to Client-1 as the original local admin (labuser) and join it to the domain. The computer will restart.  
-</p>
-<p>
-<img src="https://i.imgur.com/DAZm8Sq.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<br />
-
-<p>
-Login to the Domain Controller and verify Client-1 shows up in Active Directory Users and Computers inside the "Computers" container on the root of the domain. Create a new Organizational Unit named _CLIENTS and drag Client-1 into there. 
-</p>
-<p>
-<img src="https://i.imgur.com/3RWEI9S.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<br />
-
-<p>
-Log into Client-1 as avyaktrout.com\jane_admin and open system properties. Click Remote Desktop. Allow "domain users" access to remote desktop. You can now log into Client-1 as a normal, non-administrative user now. Normally you'd want to do this with Group Policy that allows you to change MANY systems at once (maybe a future lab).  
-</p>
-<p>
-<img src="https://i.imgur.com/lOHuuw4.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<br />
-
-<p>
-Login to DC-1 as jane_admin. Open PowerShell_ise as an administrator. Create a new File and paste the contents of this script (https://github.com/joshmadakor1/AD_PS/blob/master/Generate-Names-Create-Users.ps1) into it. 
-</p>
-<p>
-<img src="https://i.imgur.com/FFgc5or.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<br />
-
-<p>
-Run the script and observe the account being created. 
-</p>
-<p>
-<img src="https://i.imgur.com/Mwwce0e.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<br />
-
-<p>
-When finished, open Active Directory Users and Computers and observe the accounts in the appropriate OU and attempt to log into Client-1 with one of the accounts (take note of the password in the script). 
-</p>
-<p>
-<img src="https://i.imgur.com/gynz8gn.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<p>
-<img src="https://i.imgur.com/VZp5YQZ.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<p>
-<img src="https://i.imgur.com/CO7scI3.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
-</p>
-<br />
-
-<p>
-And now that we're done don't forget to clean up your Azure environment so that you don't incur unnecessary charges.  
-</p>
-<br />
